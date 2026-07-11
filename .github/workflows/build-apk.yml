@@ -34,7 +34,9 @@ jobs:
         run: |
           npm install @capacitor/core @capacitor/cli
           npm install @capacitor/android
-          npx cap add android
+          
+          # Add the platform by forcing the correct app details directly
+          npx cap add android --app-id="com.tokenzuae.messmate" --app-name="mess-mate-app"
           
           # Injecting the Kotlin duplicate class fix directly into the generated Gradle file
           echo -e "\nsubprojects {\n    configurations.configureEach {\n        resolutionStrategy {\n            exclude group: \"org.jetbrains.kotlin\", module: \"kotlin-stdlib-jdk8\"\n            exclude group: \"org.jetbrains.kotlin\", module: \"kotlin-stdlib-jdk7\"\n        }\n    }\n}" >> android/build.gradle
