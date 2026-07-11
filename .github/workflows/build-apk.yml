@@ -35,8 +35,8 @@ jobs:
           npm install @capacitor/core @capacitor/cli
           npm install @capacitor/android
           
-          # Force create a fresh config to avoid initialization blocks
-          echo '{"appId": "com.tokenzuae.messmate", "appName": "mess-mate-app", "webDir": "dist"}' > capacitor.config.json
+# Force create a fresh config pointing to the correct build folder
+echo '{"appId": "com.tokenzuae.messmate", "appName": "mess-mate-app", "webDir": "build"}' > capacitor.config.json
           
           # Clear any pre-existing android folder so 'add' never crashes
           rm -rf android
