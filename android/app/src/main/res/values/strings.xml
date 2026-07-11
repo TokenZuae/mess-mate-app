@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">mess-mate-app</string>
+    <string name="title_activity_main">mess-mate-app</string>
+    <string name="package_name">com.tokenzuae.messmate</string>
+    <string name="custom_url_scheme">com.tokenzuae.messmate</string>
+</resources>
