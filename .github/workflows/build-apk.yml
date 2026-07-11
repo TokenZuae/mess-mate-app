@@ -38,6 +38,9 @@ jobs:
           # Force create a fresh config to avoid initialization blocks
           echo '{"appId": "com.tokenzuae.messmate", "appName": "mess-mate-app", "webDir": "dist"}' > capacitor.config.json
           
+          # Clear any pre-existing android folder so 'add' never crashes
+          rm -rf android
+          
           npx cap add android
           
           # Injecting the Kotlin duplicate class fix directly into the generated Gradle file
