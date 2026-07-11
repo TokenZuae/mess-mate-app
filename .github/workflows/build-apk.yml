@@ -35,9 +35,10 @@ jobs:
           npm install @capacitor/core @capacitor/cli
           npm install @capacitor/android
           
-          # Create the missing config file dynamically
-          echo '{"appId": "com.tokenzuae.messmate", "appName": "mess-mate-app", "webDir": "dist"}' > capacitor.config.json
+          # Initialize capacitor cleanly with the proper parameters
+          npx cap init mess-mate-app com.tokenzuae.messmate --web-dir=dist
           
+          # Add the platform cleanly
           npx cap add android
           
           # Injecting the Kotlin duplicate class fix directly into the generated Gradle file
