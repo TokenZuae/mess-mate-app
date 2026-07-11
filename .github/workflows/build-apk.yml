@@ -16,8 +16,9 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-size: 20
+          node-version: 20
           cache: 'npm'
+nano .github/workflows/build-apk.yml
 
       - name: Install Project Dependencies
         run: npm install
@@ -49,4 +50,5 @@ jobs:
         with:
           name: mess-mate-app-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
 
