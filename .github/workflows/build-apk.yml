@@ -35,10 +35,7 @@ jobs:
           npm install @capacitor/core @capacitor/cli
           npm install @capacitor/android
           
-          # Initialize capacitor cleanly with the proper parameters
-          npx cap init mess-mate-app com.tokenzuae.messmate --web-dir=dist
-          
-          # Add the platform cleanly
+          # Add the platform using your existing configuration file
           npx cap add android
           
           # Injecting the Kotlin duplicate class fix directly into the generated Gradle file
