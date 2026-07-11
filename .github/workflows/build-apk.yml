@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Project Dependencies
         run: npm install
@@ -35,7 +35,9 @@ jobs:
           npm install @capacitor/core @capacitor/cli
           npm install @capacitor/android
           
-          # Add the platform using your existing configuration file
+          # Force create a fresh config to avoid initialization blocks
+          echo '{"appId": "com.tokenzuae.messmate", "appName": "mess-mate-app", "webDir": "dist"}' > capacitor.config.json
+          
           npx cap add android
           
           # Injecting the Kotlin duplicate class fix directly into the generated Gradle file
