@@ -253,13 +253,14 @@ setDeposits([]);
 setExpenses([]);
 setAiAnalysis('');
 };
-​// Gemini AI Analysis Call with Exponential Backoff
+​// Resilient Gemini AI Analysis Call with Multi-Model Fallback
 const runAiAdvisor = async () => {
-if (!apiKey.trim()) {
-setAiError('Please enter a valid Gemini API Key first.');
+const sanitizedKey = apiKey.trim().replace(/^["']|["']$/g, '');
+​if (!sanitizedKey) {
+setAiError('Please enter a valid Gemini API key from https://aistudio.google.com');
 return;
 }
-setIsAiLoading(true);
+​setIsAiLoading(true);
 setAiError('');
 setAiAnalysis('');
 ​const contextPayload = {
@@ -283,13 +284,13 @@ Analyze the following time-segmented group mess spending data and provide a conc
 ​Data Context:
 ${JSON.stringify(contextPayload, null, 2)}
 `;
-​let attempts = 0;
-const maxAttempts = 4;
-let delay = 1000;
-​while (attempts < maxAttempts) {
+​// Try models in sequence if one returns a 404 or model deprecation error
+const candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+let lastErrorMessage = '';
+​for (const model of candidateModels) {
 try {
 const response = await fetch(
-https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey.trim()},
+https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${sanitizedKey},
 {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
@@ -298,36 +299,33 @@ contents: [{ parts: [{ text: promptText }] }]
 })
 }
 );
-​if (response.status === 429) {
-attempts++;
-await new Promise(r => setTimeout(r, delay));
-delay *= 2;
-continue;
-}
-​if (!response.ok) {
-const errData = await response.json();
-throw new Error(errData.error?.message || HTTP Error ${response.status});
-}
 ​const data = await response.json();
-const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+​if (!response.ok) {
+const msg = data.error?.message || HTTP ${response.status};
+// If key is explicitly invalid, stop loop immediately
+if (msg.toLowerCase().includes('key not valid') || response.status === 400 || response.status === 403) {
+throw new Error('API key not valid. Please get a free API key from https://aistudio.google.com/app/apikey');
+}
+lastErrorMessage = msg;
+continue; // Try next model fallback
+}
+​const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 if (resultText) {
 setAiAnalysis(resultText);
 setIsAiLoading(false);
 return;
-} else {
-throw new Error('No analytical response returned from Gemini.');
 }
 } catch (err) {
-attempts++;
-if (attempts >= maxAttempts) {
-setAiError(err.message || 'Failed to connect to Gemini AI.');
+if (err.message.includes('API key not valid')) {
+setAiError(err.message);
 setIsAiLoading(false);
 return;
 }
-await new Promise(r => setTimeout(r, delay));
-delay *= 2;
+lastErrorMessage = err.message;
 }
 }
+​setAiError(lastErrorMessage || 'Failed to analyze spending with Gemini API. Please check your API key.');
+setIsAiLoading(false);
 };
 ​return (
 <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col font-sans antialiased pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(5rem,env(safe-area-inset-bottom))]">
@@ -695,12 +693,12 @@ savedCycles.map(sc => (
 <h3 className="text-sm font-bold text-slate-100">Gemini Mess Advisor</h3>
 </div>
 <p className="text-xs text-slate-400 leading-relaxed">
-Connect your Gemini API Key to run automated audits on time-segmented spending, headcount shifts, and food budget optimization.
+Connect your Gemini API Key from Google AI Studio to run automated audits on spending, headcount shifts, and budget optimization.
 </p>
 ​<div className="space-y-2">
 <input
 type="password"
-placeholder="Paste Gemini API Key"
+placeholder="Paste Gemini API Key (starts with AIzaSy...)"
 value={apiKey}
 onChange={e => setApiKey(e.target.value)}
 className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
@@ -721,7 +719,12 @@ className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-whi
 </button>
 </div>
 ​{aiError && (
-<p className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl">{aiError}</p>
+<div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 space-y-1">
+<p className="font-semibold text-rose-400">{aiError}</p>
+<p className="text-[11px] text-slate-400">
+Get a free API key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-indigo-400 underline">aistudio.google.com</a>
+</p>
+</div>
 )}
 </div>
 ​{aiAnalysis && (
@@ -758,4 +761,3 @@ className={flex flex-col items-center space-y-1 px-3 py-1 rounded-xl transition-
 </div>
 );
 }
-
